@@ -1,0 +1,16 @@
+# Virtual environment
+venv/
+
+# Database & data files
+data/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment variables (secret keys)
+.env
+
+# VS Code
+.vscode/
