@@ -3,7 +3,10 @@
 A batch ETL pipeline that extracts cryptocurrency market data from CoinGecko API, transforms it, and loads it into a local DuckDB database.
 
 ## Architecture
+
+```
 CoinGecko API → Extract → Transform → Load → DuckDB
+```
 
 ## Tech Stack
 
@@ -13,6 +16,8 @@ CoinGecko API → Extract → Transform → Load → DuckDB
 - **Requests** — HTTP client
 
 ## Project Structure
+
+```
 crypto-etl-pipeline/
 ├── etl/
 │   ├── extract/        # API fetchers
@@ -21,6 +26,7 @@ crypto-etl-pipeline/
 ├── tests/
 ├── pipeline.py         # Main entry point
 └── requirements.txt
+```
 
 ## Getting Started
 
