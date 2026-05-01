@@ -41,13 +41,21 @@ python pipeline.py
 ```
 
 ## Sample Output
+
+```
 ========================================
-Crypto ETL Pipeline
+  Crypto ETL Pipeline
+========================================
+
 [1/3] Extracting data...
 [Extract] Fetched 5 coins successfully.
+
 [2/3] Transforming data...
 [Transform] 5 rows processed.
+
 [3/3] Loading data...
 [Load] Database initialized.
 [Load] Saved successfully. Total rows in database: 5
+
 Pipeline completed successfully.
+```
