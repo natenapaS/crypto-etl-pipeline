@@ -1,5 +1,8 @@
 import pandas as pd
 from datetime import datetime, timezone
+from etl.logger import get_logger
+
+logger = get_logger(__name__)
 
 def clean_prices(raw_data: list) -> pd.DataFrame:
     """
@@ -11,6 +14,9 @@ def clean_prices(raw_data: list) -> pd.DataFrame:
     Returns:
         Cleaned pandas DataFrame
     """
+    if not raw_data:
+        raise ValueError("No data to transform.")
+
     records = []
 
     for coin in raw_data:
@@ -26,15 +32,12 @@ def clean_prices(raw_data: list) -> pd.DataFrame:
         })
 
     df = pd.DataFrame(records)
+    before = len(df)
     df = df.dropna(subset=["price_usd"])
+    dropped = before - len(df)
 
-    print(f"[Transform] {len(df)} rows processed.")
-    print(df.to_string(index=False))
+    if dropped > 0:
+        logger.warning(f"Dropped {dropped} rows with missing price.")
+
+    logger.info(f"{len(df)} rows processed.")
     return df
-
-
-if __name__ == "__main__":
-    from etl.extract.coingecko import fetch_prices
-
-    raw = fetch_prices(["bitcoin", "ethereum", "solana"])
-    df = clean_prices(raw)

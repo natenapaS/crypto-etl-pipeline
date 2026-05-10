@@ -1,13 +1,20 @@
 import requests
+import time
+from etl.logger import get_logger
+
+logger = get_logger(__name__)
+
+MAX_RETRIES = 3
+RETRY_DELAY = 5  # seconds
 
 def fetch_prices(coin_ids: list, vs_currency: str = "usd") -> list:
     """
-    Fetch crypto market data from CoinGecko API.
-    
+    Fetch crypto market data from CoinGecko API with retry logic.
+
     Args:
         coin_ids: List of coin IDs e.g. ["bitcoin", "ethereum"]
         vs_currency: Target currency (default: "usd")
-    
+
     Returns:
         List of raw market data dicts
     """
@@ -20,19 +27,27 @@ def fetch_prices(coin_ids: list, vs_currency: str = "usd") -> list:
         "sparkline": False,
     }
 
-    response = requests.get(url, params=params)
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            logger.info(f"Fetching data (attempt {attempt}/{MAX_RETRIES})...")
+            response = requests.get(url, params=params, timeout=10)
 
-    if response.status_code != 200:
-        raise Exception(f"API Error: {response.status_code} - {response.text}")
+            if response.status_code != 200:
+                raise Exception(f"API Error: {response.status_code} - {response.text}")
 
-    data = response.json()
-    print(f"[Extract] Fetched {len(data)} coins successfully.")
-    return data
+            data = response.json()
 
+            if not data:
+                raise ValueError("API returned empty data.")
 
-if __name__ == "__main__":
-    coins = ["bitcoin", "ethereum", "solana"]
-    result = fetch_prices(coins)
+            logger.info(f"Fetched {len(data)} coins successfully.")
+            return data
 
-    for coin in result:
-        print(f"{coin['name']}: ${coin['current_price']:,}")
+        except Exception as e:
+            logger.warning(f"Attempt {attempt} failed: {e}")
+            if attempt < MAX_RETRIES:
+                logger.info(f"Retrying in {RETRY_DELAY} seconds...")
+                time.sleep(RETRY_DELAY)
+            else:
+                logger.error("All retry attempts exhausted.")
+                raise

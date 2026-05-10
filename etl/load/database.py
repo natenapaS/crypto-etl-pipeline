@@ -1,5 +1,8 @@
 import duckdb
 import pandas as pd
+from etl.logger import get_logger
+
+logger = get_logger(__name__)
 
 DB_PATH = "data/crypto.duckdb"
 
@@ -19,25 +22,15 @@ def init_db():
         )
     """)
     con.close()
-    print("[Load] Database initialized.")
+    logger.info("Database initialized.")
 
 def save_prices(df: pd.DataFrame):
     """Insert a DataFrame into the crypto_prices table."""
+    if df.empty:
+        raise ValueError("DataFrame is empty. Nothing to save.")
+
     con = duckdb.connect(DB_PATH)
     con.execute("INSERT INTO crypto_prices SELECT * FROM df")
     total = con.execute("SELECT COUNT(*) FROM crypto_prices").fetchone()[0]
     con.close()
-    print(f"[Load] Saved successfully. Total rows in database: {total}")
-
-
-if __name__ == "__main__":
-    import os
-    os.makedirs("data", exist_ok=True)
-
-    from etl.extract.coingecko import fetch_prices
-    from etl.transform.cleaner import clean_prices
-
-    init_db()
-    raw = fetch_prices(["bitcoin", "ethereum", "solana"])
-    df = clean_prices(raw)
-    save_prices(df)
+    logger.info(f"Saved successfully. Total rows in database: {total}")
