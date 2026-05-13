@@ -1,8 +1,5 @@
 import pandas as pd
 from datetime import datetime, timezone
-from etl.logger import get_logger
-
-logger = get_logger(__name__)
 
 def clean_prices(raw_data: list) -> pd.DataFrame:
     """
@@ -37,7 +34,7 @@ def clean_prices(raw_data: list) -> pd.DataFrame:
     dropped = before - len(df)
 
     if dropped > 0:
-        logger.warning(f"Dropped {dropped} rows with missing price.")
+        print(f"[WARNING] Dropped {dropped} rows with missing price.")
 
-    logger.info(f"{len(df)} rows processed.")
+    print(f"[Transform] {len(df)} rows processed.")
     return df

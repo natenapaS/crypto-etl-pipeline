@@ -1,8 +1,8 @@
 import duckdb
 import pandas as pd
-from etl.logger import get_logger
+# from etl.logger import get_logger
 
-logger = get_logger(__name__)
+# logger = get_logger(__name__)
 
 DB_PATH = "data/crypto.duckdb"
 
@@ -22,7 +22,7 @@ def init_db():
         )
     """)
     con.close()
-    logger.info("Database initialized.")
+    print("Database initialized.")
 
 def save_prices(df: pd.DataFrame):
     """Insert a DataFrame into the crypto_prices table."""
@@ -33,4 +33,4 @@ def save_prices(df: pd.DataFrame):
     con.execute("INSERT INTO crypto_prices SELECT * FROM df")
     total = con.execute("SELECT COUNT(*) FROM crypto_prices").fetchone()[0]
     con.close()
-    logger.info(f"Saved successfully. Total rows in database: {total}")
+    print(f"Saved successfully. Total rows in database: {total}")

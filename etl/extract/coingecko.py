@@ -1,11 +1,13 @@
 import requests
 import time
-from etl.logger import get_logger
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# from etl.logger import get_logger
 
-logger = get_logger(__name__)
+# logger = get_logger(__name__)
 
 MAX_RETRIES = 3
-RETRY_DELAY = 5  # seconds
+RETRY_DELAY = 5
 
 def fetch_prices(coin_ids: list, vs_currency: str = "usd") -> list:
     """
@@ -27,10 +29,20 @@ def fetch_prices(coin_ids: list, vs_currency: str = "usd") -> list:
         "sparkline": False,
     }
 
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
+
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            logger.info(f"Fetching data (attempt {attempt}/{MAX_RETRIES})...")
-            response = requests.get(url, params=params, timeout=10)
+            print(f"Fetching data (attempt {attempt}/{MAX_RETRIES})...")
+            response = requests.get(url, params=params, headers=headers, timeout=10, verify=False)
+
+            if response.status_code == 429:
+                wait = 30
+                print(f"Rate limited. Waiting {wait} seconds...")
+                time.sleep(wait)
+                continue
 
             if response.status_code != 200:
                 raise Exception(f"API Error: {response.status_code} - {response.text}")
@@ -40,14 +52,14 @@ def fetch_prices(coin_ids: list, vs_currency: str = "usd") -> list:
             if not data:
                 raise ValueError("API returned empty data.")
 
-            logger.info(f"Fetched {len(data)} coins successfully.")
+            print(f"Fetched {len(data)} coins successfully.")
             return data
 
         except Exception as e:
-            logger.warning(f"Attempt {attempt} failed: {e}")
+            print(f"Attempt {attempt} failed: {e}")
             if attempt < MAX_RETRIES:
-                logger.info(f"Retrying in {RETRY_DELAY} seconds...")
+                print(f"Retrying in {RETRY_DELAY} seconds...")
                 time.sleep(RETRY_DELAY)
             else:
-                logger.error("All retry attempts exhausted.")
+                print("All retry attempts exhausted.")
                 raise
